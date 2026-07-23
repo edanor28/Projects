@@ -1,0 +1,40 @@
+# ==========================================
+# 🛑 DEVSECOPS: REGLAS DE EXCLUSIÓN CRÍTICAS
+# ==========================================
+
+# 1. SECRETOS Y CREDENCIALES (¡NUNCA SUBIR!)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+
+# 2. DEPENDENCIAS (Gestión de Memoria y Red)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# 3. COMPILACIONES Y CACHÉ FRONTEND (Next.js)
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.swc/
+*.tsbuildinfo
+
+# 4. COMPILACIONES BACKEND (NestJS / TypeScript)
+backend/dist/
+backend/.nestjs/
+
+# 5. BASE DE DATOS Y ORM LOCAL
+backend/prisma/*.db
+backend/prisma/*.db-journal
+
+# 6. ARCHIVOS DEL SISTEMA OPERATIVO Y EDITORES
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj

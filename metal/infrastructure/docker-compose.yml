@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  postgres-db:
+    # Usamos la versión Alpine por ser extremadamente ligera y reducir la superficie de ataque
+    image: postgres:15-alpine
+    container_name: metalurgia-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin_metal
+      POSTGRES_PASSWORD: super_secure_password_123
+      POSTGRES_DB: metalurgia_db
+    ports:
+      - "5433:5432"
+    volumes:
+      # Persistencia de datos: Si borras el contenedor, los datos del volumen local no se pierden
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:

@@ -1,6 +1,5 @@
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -18,10 +17,10 @@ enum Role {
 }
 
 enum OrderStatus {
-  PENDING      // Cliente hizo el pedido, esperando pago/confirmación
-  PROCESSING   // En taller metalúrgico
-  COMPLETED    // Listo para entrega/recogida
-  CANCELLED    // Cancelado (Soft delete logico)
+  PENDING // Cliente hizo el pedido, esperando pago/confirmación
+  PROCESSING // En taller metalúrgico
+  COMPLETED // Listo para entrega/recogida
+  CANCELLED // Cancelado (Soft delete logico)
 }
 
 // ====================================================================
@@ -31,25 +30,26 @@ enum OrderStatus {
 model User {
   // SEGURIDAD: Usamos UUID en lugar de Int Autoincremental para mitigar 
   // ataques IDOR (Insecure Direct Object Reference). Nadie podrá adivinar IDs.
-  id            String    @id @default(uuid())
-  
-  email         String    @unique
-  passwordHash  String    // NUNCA guardar contraseñas en texto plano. Usaremos Argon2id en el backend.
-  
-  firstName     String
-  lastName      String
-  role          Role      @default(CLIENT)
-  
+  id String @id @default(uuid())
+
+  email        String @unique
+  passwordHash String // NUNCA guardar contraseñas en texto plano. Usaremos Argon2id en el backend.
+
+  firstName String
+  lastName  String
+  role      Role   @default(CLIENT)
+
   // SEGURIDAD: Soft Deletes. Nunca borramos registros con DELETE, cambiamos su estado.
   // Esto mantiene la integridad referencial y las auditorías intactas.
-  isActive      Boolean   @default(true)
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relaciones
-  orders        Order[]   @relation("ClientOrders")
-  messages      Message[]
+  orders    Order[]    @relation("ClientOrders")
+  messages  Message[]
+  auditLogs AuditLog[]
 }
 
 // ====================================================================
@@ -57,48 +57,48 @@ model User {
 // ====================================================================
 
 model Product {
-  id            String    @id @default(uuid())
-  name          String
-  description   String?
-  
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+
   // Guardamos los precios en centavos (Int) para evitar errores de precisión de coma flotante.
-  priceCents    Int       
-  
-  stockQuantity Int       @default(0)
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  priceCents Int
+
+  stockQuantity Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relaciones
-  orderItems    OrderItem[]
+  orderItems OrderItem[]
 }
 
 model Order {
-  id            String      @id @default(uuid())
-  status        OrderStatus @default(PENDING)
-  totalCents    Int         // Total pre-calculado para validación rápida
-  
-  clientId      String
-  client        User        @relation("ClientOrders", fields: [clientId], references: [id])
-  
-  items         OrderItem[]
-  
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id         String      @id @default(uuid())
+  status     OrderStatus @default(PENDING)
+  totalCents Int // Total pre-calculado para validación rápida
+
+  clientId String
+  client   User   @relation("ClientOrders", fields: [clientId], references: [id])
+
+  items OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model OrderItem {
-  id            String    @id @default(uuid())
-  quantity      Int
-  
-  // Snapshot del precio en el momento de la compra (inmutable)
-  unitPriceCents Int      
+  id       String @id @default(uuid())
+  quantity Int
 
-  orderId       String
-  order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  
-  productId     String
-  product       Product   @relation(fields: [productId], references: [id])
+  // Snapshot del precio en el momento de la compra (inmutable)
+  unitPriceCents Int
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
 }
 
 // ====================================================================
@@ -106,11 +106,26 @@ model OrderItem {
 // ====================================================================
 
 model Message {
-  id            String    @id @default(uuid())
-  content       String    // Será saneado contra XSS en el Backend antes de insertarse
-  
-  senderId      String
-  sender        User      @relation(fields: [senderId], references: [id])
-  
-  createdAt     DateTime  @default(now())
+  id      String @id @default(uuid())
+  content String // Será saneado contra XSS en el Backend antes de insertarse
+
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  entity    String
+  entityId  String
+  userId    String
+  details   Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@index([entity, entityId])
 }
