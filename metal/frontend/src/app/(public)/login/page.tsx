@@ -22,7 +22,8 @@ export default function LoginPage() {
   const router = useRouter();
   const setUser = useAuthStore((state) => state.setUser);
   const [serverError, setServerError] = useState<string | null>(null);
-
+  const loginStore = useAuthStore((state) => state.login);
+  const logoutStore = useAuthStore((state) => state.logout);
   // 2. RENDIMIENTO: React Hook Form evita re-renders O(n) por cada tecla pulsada
   const {
     register,
@@ -39,27 +40,40 @@ export default function LoginPage() {
       
       // La cookie HttpOnly se inyectará automáticamente en el navegador gracias a nuestro config de Axios
       const response = await api.post('/auth/login', data);
-      
+      const userData = response.data.user;
       // Guardamos en Zustand solo los datos no sensibles (Nombre, Rol)
       setUser(response.data.user);
+      
+      loginStore(userData);
+      setAuth(userData);
 
-      // 4. ENRUTAMIENTO BASADO EN ROLES (RBAC Frontend)
-      const role = response.data.user.role;
-      if (role === 'MANAGER') router.push('/manager');
-      else if (role === 'WORKER') router.push('/worker');
-      else router.push('/client');
+      // Redirigimos al usuario a su perímetro correspondiente para evitar rechazos del Middleware
+      switch (userData.role) {
+        case 'MANAGER':
+          router.push('/manager');
+          break;
+        case 'WORKER':
+          router.push('/worker');
+          break;
+        case 'CLIENT':
+          router.push('/client');
+          break;
+        default:
+          setServerError('Rol de usuario no reconocido. Contacte a soporte.');
+          logoutStore(); // Destruimos la sesión por precaución
+      }
 
     } catch (error: any) {
-      // Manejo de errores seguro: no filtramos stack traces al usuario
       if (error.response?.status === 401) {
-        setServerError('Credenciales inválidas. Verifique su correo y contraseña.');
+        setServerError('Credenciales incorrectas. Verifique su correo y contraseña.');
       } else {
         setServerError('Error de conexión con el servidor. Intente más tarde.');
       }
     }
-  };
+  
+  }
 
-  return (
+  return (  
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full p-8 bg-white rounded-xl shadow-lg border border-gray-100">
         <div className="text-center mb-8">
@@ -128,3 +142,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

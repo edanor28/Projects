@@ -7,7 +7,7 @@ const protectedRoutes = ['/manager', '/worker', '/client'];
 // Rutas que no deben ser accesibles si el usuario YA está logueado
 const publicAuthRoutes = ['/login', '/register'];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 2. Extraemos la cookie segura que inyectó nuestro backend NestJS

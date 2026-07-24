@@ -107,6 +107,12 @@ export default function UsersManagementPage() {
                 <Link href="/manager/users" className="bg-slate-800 text-white px-3 py-2 rounded-md text-sm font-medium border border-slate-700">
                   Personal (RRHH)
                 </Link>
+                <Link href="/manager/audit" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                  Auditoría Forense
+                </Link>
+                <Link href="/manager/orders" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                  Pedidos (B2B)
+                 </Link>
               </div>
             </div>
             <div className="flex items-center space-x-4">

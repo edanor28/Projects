@@ -17,10 +17,10 @@ enum Role {
 }
 
 enum OrderStatus {
-  PENDING // Cliente hizo el pedido, esperando pago/confirmación
-  PROCESSING // En taller metalúrgico
-  COMPLETED // Listo para entrega/recogida
-  CANCELLED // Cancelado (Soft delete logico)
+  PENDING    // Esperando aprobación del Gerente
+  APPROVED   // Aprobado, listo para ser despachado por el Trabajador
+  REJECTED   // Rechazado por falta de stock o problemas de pago
+  FULFILLED  // Entregado al cliente
 }
 
 // ====================================================================
@@ -47,7 +47,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relaciones
-  orders    Order[]    @relation("ClientOrders")
+  orders    Order[]
   messages  Message[]
   auditLogs AuditLog[]
 }
@@ -75,30 +75,33 @@ model Product {
 
 model Order {
   id         String      @id @default(uuid())
+  userId     String
   status     OrderStatus @default(PENDING)
-  totalCents Int // Total pre-calculado para validación rápida
-
-  clientId String
-  client   User   @relation("ClientOrders", fields: [clientId], references: [id])
-
-  items OrderItem[]
+  totalCents Int         // Total pre-calculado en el backend, NUNCA confiamos en el cliente
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Relaciones
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items  OrderItem[]
+
+  @@index([userId])
+  @@index([status])
 }
 
 model OrderItem {
-  id       String @id @default(uuid())
-  quantity Int
+  id         String @id @default(uuid())
+  orderId    String
+  productId  String
+  quantity   Int
+  priceCents Int    // Snapshot del precio en el momento de la compra
 
-  // Snapshot del precio en el momento de la compra (inmutable)
-  unitPriceCents Int
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
 
-  orderId String
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
+  @@index([orderId])
+  @@index([productId])
 }
 
 // ====================================================================
