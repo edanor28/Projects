@@ -13,7 +13,7 @@ COPY package.json package-lock.json ./
 COPY prisma ./prisma/
 
 # INSTALACIÓN DETERMINISTA: 'npm ci' respeta el package-lock exacto (Previene Supply Chain Attacks)
-RUN npm install
+RUN npm ci
 
 # Generamos los binarios de Prisma basados en el esquema
 RUN npx prisma generate
