@@ -1,5 +1,5 @@
 // backend/src/orders/orders.controller.ts
-import { Controller, Get, Post, Body, Param, UseGuards, Req, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Req, ForbiddenException, Patch } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -26,9 +26,7 @@ export class OrdersController {
   // 2. LECTURA GLOBAL: Solo RRHH y Operarios ven todo el flujo logístico
   @Get()
   @Roles(Role.MANAGER, Role.WORKER)
-  findAll() {
-    return this.ordersService.findAll();
-  }
+  
 
   // 3. LECTURA AISLADA (Zero Trust): Endpoint específico para que el cliente vea su historial
   @Get('my-orders')
