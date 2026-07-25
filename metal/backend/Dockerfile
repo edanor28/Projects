@@ -25,7 +25,6 @@ COPY . .
 RUN npm run build
 
 # Purgamos dependencias de desarrollo (DevDependencies) para no subirlas a producción
-RUN npm ci --omit=dev && npm cache clean --force
 
 # ETAPA 2: PRODUCTION (Entorno de Ejecución Aislado)
 
@@ -41,7 +40,10 @@ ENV NODE_ENV=production
 ENV PORT=3001
 
 # COPIA QUIRÚRGICA: Solo transferimos el código compilado y las librerías estrictamente necesarias
-COPY --from=builder /usr/src/app/node_modules ./node_modules
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+
+COPY --from=builder /usr/src/app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/package.json ./
 
