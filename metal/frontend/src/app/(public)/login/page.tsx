@@ -22,7 +22,7 @@ export default function LoginPage() {
   const router = useRouter();
   const setUser = useAuthStore((state) => state.setUser);
   const [serverError, setServerError] = useState<string | null>(null);
-  const loginStore = useAuthStore((state) => state.login);
+  
   const logoutStore = useAuthStore((state) => state.logout);
   // 2. RENDIMIENTO: React Hook Form evita re-renders O(n) por cada tecla pulsada
   const {
@@ -44,8 +44,7 @@ export default function LoginPage() {
       // Guardamos en Zustand solo los datos no sensibles (Nombre, Rol)
       setUser(response.data.user);
       
-      loginStore(userData);
-      setAuth(userData);
+      
 
       // Redirigimos al usuario a su perímetro correspondiente para evitar rechazos del Middleware
       switch (userData.role) {

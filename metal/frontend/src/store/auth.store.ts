@@ -16,6 +16,7 @@ interface AuthState {
   isLoading: boolean; // Para manejar estados de carga en la UI (Spinners)
   
   // Acciones
+  
   setUser: (user: User) => void;
   logout: () => void;
   setLoading: (status: boolean) => void;

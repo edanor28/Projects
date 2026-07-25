@@ -1,0 +1,80 @@
+name: metalurgia-erp
+
+services:
+  # ==========================================
+  # 1. CAPA DE DATOS (Aislada y Persistente)
+  # ==========================================
+  db:
+    image: postgres:15-alpine
+    container_name: erp_database
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-super_secure_password}
+      POSTGRES_DB: ${DB_NAME:-metalurgia_erp}
+    volumes:
+      # Persistencia de datos: Si el contenedor muere, los datos sobreviven aquí
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - erp_internal_network
+    # SEGURIDAD: No usamos 'ports: - "5432:5432"'. 
+    # La BD es invisible desde el exterior, bloqueando ataques de fuerza bruta.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-metalurgia_erp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # 2. CAPA DE LÓGICA (Backend NestJS)
+  # ==========================================
+  backend:
+    build:
+      context: ./backend
+      # Docker construirá automáticamente hasta la etapa 'production'
+    container_name: erp_backend
+    restart: unless-stopped
+    environment:
+      # DNS Interno de Docker: En lugar de 'localhost', apuntamos al servicio 'db'
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-super_secure_password}@db:5432/${DB_NAME:-metalurgia_erp}?schema=public
+      JWT_SECRET: ${JWT_SECRET:-tu_secreto_super_seguro_cambialo_en_prod}
+      PORT: 3001
+    ports:
+      # Exponemos el backend solo para que el frontend (SSR) y clientes puedan consumirlo
+      - "3001:3001"
+    networks:
+      - erp_internal_network
+    depends_on:
+      db:
+        condition: service_healthy # El backend no arrancará hasta que la BD esté lista
+
+  # ==========================================
+  # 3. CAPA DE PRESENTACIÓN (Frontend Next.js)
+  # ==========================================
+  frontend:
+    build:
+      context: ./frontend
+      # Docker construirá utilizando el modo Standalone optimizado
+    container_name: erp_frontend
+    restart: unless-stopped
+    environment:
+      # URL que Next.js usará para comunicarse con el backend internamente (SSR) y externamente (Navegador)
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api}
+    ports:
+      # Este es el puerto público que verán los usuarios
+      - "3000:3000"
+    networks:
+      - erp_internal_network
+    depends_on:
+      - backend
+
+# ==========================================
+# DEFINICIÓN DE REDES Y VOLÚMENES
+# ==========================================
+networks:
+  erp_internal_network:
+    driver: bridge # Red privada aislada del host
+
+volumes:
+  pg_data:
+    driver: local # Volumen gestionado por Docker para evitar pérdida de datos

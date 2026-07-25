@@ -14,7 +14,7 @@ export class OrdersService {
     // TODO se revierte automáticamente. No habrá cargos a medias ni inventario corrupto.
     return this.prisma.$transaction(async (tx) => {
       let totalCents = 0;
-      const orderItemsData = [];
+      const orderItemsData: { productId: string; quantity: number; priceCents: number }[] = [];
 
       // 1. Verificación de integridad por cada artículo solicitado
       for (const item of createOrderDto.items) {
