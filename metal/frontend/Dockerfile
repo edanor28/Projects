@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Instalación limpia para prevenir ataques de cadena de suministro
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm ci
 
 
 # ETAPA 2: BUILDER (Compilación de React/Next.js)
@@ -15,6 +15,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN mkdir -p ./public
 
 # Deshabilitamos la telemetría de Next.js (Privacidad y Seguridad de Datos)
 ENV NEXT_TELEMETRY_DISABLED 1
