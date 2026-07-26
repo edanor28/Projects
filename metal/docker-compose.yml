@@ -31,6 +31,7 @@ services:
   backend:
     build:
       context: ./backend
+    
       # Docker construirá automáticamente hasta la etapa 'production'
     container_name: erp_backend
     restart: unless-stopped
@@ -48,12 +49,32 @@ services:
       db:
         condition: service_healthy # El backend no arrancará hasta que la BD esté lista
 
+  backend-tools:
+    build:
+      context: ./backend
+      target: builder
+    container_name: erp_backend_tools
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-super_secure_password}@db:5432/${DB_NAME:-metalurgia_erp}?schema=public
+    volumes:
+      - ./backend/prisma:/usr/src/app/prisma
+    networks:
+      - erp_internal_network
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - tools
+
   # ==========================================
   # 3. CAPA DE PRESENTACIÓN (Frontend Next.js)
   # ==========================================
   frontend:
     build:
       context: ./frontend
+
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api}
       # Docker construirá utilizando el modo Standalone optimizado
     container_name: erp_frontend
     restart: unless-stopped
