@@ -47,8 +47,7 @@ COPY --from=builder /usr/src/app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/package.json ./
 COPY --from=builder /usr/src/app/prisma ./prisma
-COPY docker-entrypoint.sh ./docker-entrypoint.sh
-RUN chmod +x ./docker-entrypoint.sh
+
 
 # SEGURIDAD (Zero Trust): Cambiamos del usuario 'root' al usuario sin privilegios 'node'
 # Si un atacante vulnera NestJS, no tendrá permisos para instalar malware en este contenedor.
@@ -58,4 +57,4 @@ USER node
 EXPOSE 3001
 
 # Comando de arranque inmutable (No usamos ts-node ni nodemon en producción)
-ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
