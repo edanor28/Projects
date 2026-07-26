@@ -47,6 +47,7 @@ COPY --from=builder /usr/src/app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/package.json ./
 COPY --from=builder /usr/src/app/prisma ./prisma
+COPY --from=builder /usr/src/app/prisma.config.ts ./prisma.config.ts
 
 
 # SEGURIDAD (Zero Trust): Cambiamos del usuario 'root' al usuario sin privilegios 'node'
