@@ -1,0 +1,27 @@
+{
+  "name": "asistente-financiero",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "expo": "~48.0.0",
+    "react": "18.2.0",
+    "react-native": "0.71.8"
+  },
+  "expo": {
+    "plugins": ["expo-secure-store"]
+  },
+  "devDependencies": {
+    "typescript": "^5.1.0",
+    "eslint": "^8.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-native": "^0.71.0"
+  }
+}
