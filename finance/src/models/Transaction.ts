@@ -1,12 +1,13 @@
-import { Model } from '@nozbe/watermelondb';
-import { field } from '@nozbe/watermelondb/decorators';
-
-export default class Transaction extends Model {
+export default class Transaction {
   static table = 'transactions';
 
-  @field('amount') amount!: number;
-  @field('date') date!: number; // store as epoch ms
-  @field('raw_description') rawDescription!: string;
-  @field('processing_state') processingState!: string;
-  @field('category_id') categoryId?: string;
+  amount!: number;
+  date!: number;
+  rawDescription!: string;
+  processingState!: string;
+  categoryId?: string;
+
+  constructor(values: Partial<Transaction> = {}) {
+    Object.assign(this, values);
+  }
 }

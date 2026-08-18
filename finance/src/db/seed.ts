@@ -1,7 +1,6 @@
-import { Database } from '@nozbe/watermelondb';
 import { validateAmount, validateEpochMs, sanitizeText } from '../utils/validation';
 
-export async function seedSampleData(db: Database): Promise<void> {
+export async function seedSampleData(db: any): Promise<void> {
   // Create a sample category and a transaction if they don't already exist.
   const categoriesCollection = db.collections.get('categories');
   const transactionsCollection = db.collections.get('transactions');

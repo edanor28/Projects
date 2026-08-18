@@ -1,17 +1,29 @@
 {
   "expo": {
+    "name": "Asistente Financiero",
+    "slug": "asistente-financiero",
+    "version": "0.1.0",
+    "scheme": "asistente-financiero",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "plugins": [
+      "expo-secure-store"
+    ],
     "extra": {
       "eas": {
         "projectId": "684c545e-63a4-41e4-9b51-8303b2dea625"
       }
     },
     "owner": "edanor01s-team",
-    "slug": "edward",
     "ios": {
       "bundleIdentifier": "com.edanor01steam.edward",
+      "supportsTabletMode": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
+    },
+    "android": {
+      "package": "com.edanor01steam.edward"
     }
   }
 }

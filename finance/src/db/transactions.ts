@@ -1,5 +1,3 @@
-import { Database } from '@nozbe/watermelondb';
-
 export type IncomingTransaction = {
   id?: string | number;
   amount: number;
@@ -7,7 +5,7 @@ export type IncomingTransaction = {
   raw_description: string;
 };
 
-export async function persistTransactions(db: Database, items: IncomingTransaction[]): Promise<number> {
+export async function persistTransactions(db: any, items: IncomingTransaction[]): Promise<number> {
   const collection = db.collections.get('transactions');
   let created = 0;
   await db.write(async () => {

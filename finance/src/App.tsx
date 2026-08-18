@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { sanitizeText } from './utils/validation';
 import { initDatabase } from './db/database';
 import { seedSampleData } from './db/seed';
@@ -8,8 +9,9 @@ import { categorizeViaProxy } from './api/proxyClient';
 import LoginScreen from './screens/Login';
 import OAuthLogin from './screens/OAuthLogin';
 import { getStoredToken } from './api/authClient';
+import { getDevAuthToken, getProxyBaseUrl } from './config';
 
-export default function App(): JSX.Element {
+export default function App(): React.ReactElement {
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [errMsg, setErrMsg] = useState<string | null>(null);
 
@@ -30,8 +32,8 @@ export default function App(): JSX.Element {
         await seedSampleData(db);
 
         // If a proxy is configured and a dev token is present, attempt a sample categorize
-        const proxyBase = process.env.PROXY_BASE_URL;
-        const devToken = process.env.DEV_AUTH_TOKEN; // for local development only
+        const proxyBase = getProxyBaseUrl();
+        const devToken = getDevAuthToken();
         if (proxyBase && devToken) {
           try {
             const txs = await db.collections.get('transactions').query().fetch();
