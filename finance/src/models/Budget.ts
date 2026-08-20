@@ -1,10 +1,11 @@
-import { Model } from '@nozbe/watermelondb';
-import { field } from '@nozbe/watermelondb/decorators';
-
-export default class Budget extends Model {
+export default class Budget {
   static table = 'budgets';
 
-  @field('category_id') categoryId!: string;
-  @field('monthly_limit') monthlyLimit!: number;
-  @field('month_year') monthYear!: string; // e.g., 2026-08
+  categoryId!: string;
+  monthlyLimit!: number;
+  monthYear!: string;
+
+  constructor(values: Partial<Budget> = {}) {
+    Object.assign(this, values);
+  }
 }

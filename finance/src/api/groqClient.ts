@@ -1,3 +1,5 @@
+import { getGeminiApiUrl } from '../config';
+
 // Minimal, secure stub client for cloud inference (Gemini)
 // Security: read API URL and key from environment variables. Do NOT hardcode or log secrets.
 
@@ -18,9 +20,9 @@ export class GeminiClient {
   private apiKey: string | undefined;
 
   constructor(url: string) {
-    if (!url) throw new Error('Gemini API URL required');
-    this.url = url;
-    this.apiKey = process.env.GEMINI_API_KEY; // read from env only
+    this.url = url || getGeminiApiUrl();
+    if (!this.url) throw new Error('Gemini API URL required');
+    this.apiKey = (globalThis as any)?.process?.env?.GEMINI_API_KEY || (globalThis as any)?.process?.env?.EXPO_PUBLIC_GEMINI_API_KEY;
   }
 
   private validateResponse(payload: any): CategorizationResponse {

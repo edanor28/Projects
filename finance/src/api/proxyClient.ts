@@ -1,11 +1,13 @@
+import { getProxyBaseUrl } from '../config';
+
 // Client to call the local/remote proxy that wraps Gemini.
-// The proxy URL should be provided via environment variable PROXY_BASE_URL in dev,
+// The proxy URL should be provided via EXPO_PUBLIC_PROXY_BASE_URL in dev,
 // or configured in the app's runtime config for production.
 
 type CategorizationRequest = { id: string; amount: number; date: number; raw_description: string };
 
 export async function categorizeViaProxy(req: CategorizationRequest, token?: string) {
-  const base = process.env.PROXY_BASE_URL || 'http://localhost:3000';
+  const base = getProxyBaseUrl();
   const url = `${base.replace(/\/$/, '')}/api/categorize`;
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;

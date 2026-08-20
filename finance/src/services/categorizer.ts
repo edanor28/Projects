@@ -1,8 +1,8 @@
-import { Database } from '@nozbe/watermelondb';
 import { categorizeViaProxy } from '../api/proxyClient';
 import { GeminiClient } from '../api/groqClient';
+import { getGeminiApiUrl, getProxyBaseUrl } from '../config';
 
-export async function categorizePending(db: Database, maxItems = 10): Promise<number> {
+export async function categorizePending(db: any, maxItems = 10): Promise<number> {
   const txCollection = db.collections.get('transactions');
   const catCollection = db.collections.get('categories');
 
@@ -10,14 +10,15 @@ export async function categorizePending(db: Database, maxItems = 10): Promise<nu
   const toProcess = pending.slice(0, maxItems);
   if (toProcess.length === 0) return 0;
 
-  const proxyBase = process.env.PROXY_BASE_URL;
-  const geminiUrl = process.env.GEMINI_API_URL;
+  const proxyBase = getProxyBaseUrl();
+  const geminiUrl = getGeminiApiUrl();
   const gemini = geminiUrl ? new GeminiClient(geminiUrl) : null;
 
   let processed = 0;
-  for (const rec of toProcess) {
+  for (const rec of toProcess as any[]) {
     try {
-      const req = { id: String(rec.id), amount: Number(rec.amount), date: Number(rec.date), raw_description: String(rec.raw_description) };
+      const row = rec as any;
+      const req = { id: String(row.id), amount: Number(row.amount), date: Number(row.date), raw_description: String(row.raw_description) };
       let res: any = null;
       try {
         if (proxyBase) {
@@ -28,9 +29,9 @@ export async function categorizePending(db: Database, maxItems = 10): Promise<nu
           throw new Error('No categorization backend configured');
         }
       } catch (err) {
-        console.warn('Categorization call failed for', rec.id, err);
+        console.warn('Categorization call failed for', row.id, err);
         await db.write(async () => {
-          await rec.update((r: any) => { r.processing_state = 'failed'; });
+          await row.update((r: any) => { r.processing_state = 'failed'; });
         });
         continue;
       }
@@ -52,7 +53,7 @@ export async function categorizePending(db: Database, maxItems = 10): Promise<nu
 
       // update transaction
       await db.write(async () => {
-        await rec.update((r: any) => {
+        await row.update((r: any) => {
           r.category_id = String((match as any).id);
           r.processing_state = 'categorized';
         });

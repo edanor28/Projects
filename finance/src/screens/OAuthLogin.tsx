@@ -1,9 +1,9 @@
 import React from 'react';
 import { Button, View, Text } from 'react-native';
-import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
 import { generateCodeVerifier, computeCodeChallenge, exchangeCodeForToken } from '../api/authClient';
+import { getClientId, getProxyBaseUrl } from '../config';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -12,15 +12,18 @@ export default function OAuthLogin() {
 
   async function startOAuth() {
     setMessage(null);
-    const clientId = process.env.CLIENT_ID || 'mobile-client';
-    const base = process.env.PROXY_BASE_URL || 'http://localhost:3000';
-    const redirectUri = makeRedirectUri({ useProxy: true });
+    const clientId = getClientId();
+    const base = getProxyBaseUrl();
+    const redirectUri = makeRedirectUri({
+      scheme: 'asistente-financiero',
+      path: 'oauth/callback'
+    });
 
     try {
       const codeVerifier = await generateCodeVerifier();
       const codeChallenge = await computeCodeChallenge(codeVerifier);
 
-      const authUrl = `${base}/oauth/authorize?` +
+      const authUrl = `${base.replace(/\/$/, '')}/oauth/authorize?` +
         new URLSearchParams({
           response_type: 'code',
           client_id: clientId,
@@ -29,20 +32,21 @@ export default function OAuthLogin() {
           code_challenge_method: 'S256'
         }).toString();
 
-      const result: any = await AuthSession.startAsync({ authUrl });
-      if (result.type === 'success' && result.params && result.params.code) {
-        const code = result.params.code;
-        // exchange code for token
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
+      const params = (result as any)?.params ?? {};
+
+      if (result.type === 'success' && params.code) {
+        const code = params.code;
         const tokenResp = await exchangeCodeForToken(code, codeVerifier, redirectUri, clientId, base);
         if (tokenResp && tokenResp.access_token) {
           setMessage('Login successful');
         } else {
           setMessage('Token exchange failed');
         }
-      } else if (result.type === 'error') {
-        setMessage('Auth error');
-      } else {
+      } else if (result.type === 'cancel') {
         setMessage('Auth cancelled');
+      } else {
+        setMessage('Auth error');
       }
     } catch (err: any) {
       setMessage(err.message ?? 'OAuth error');
